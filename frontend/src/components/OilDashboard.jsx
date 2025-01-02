@@ -8,12 +8,9 @@ const OilDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('https://yeti-final-app.onrender.com/api/oils?populate=*');
-        const formattedData = response.data.data.map(item => ({
-          ...item.attributes,
-          id: item.id
-        }));
-        setData(formattedData);
+        const response = await fetch('https://yeti-final-app.onrender.com/api/oils?populate=*');
+        const result = await response.json();
+        setData(result.data);
       } catch (error) {
         console.error('Error:', error);
       }
@@ -33,13 +30,13 @@ const OilDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-2">Latest Reading</h2>
-          <p className="text-2xl font-bold">{data[0]?.odometer} km</p>
+          <p className="text-2xl font-bold">{data[0]?.odometer || 'N/A'} km</p>
           <p className="text-sm text-gray-500">Odometer</p>
         </div>
         
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-2">Last Oil Added</h2>
-          <p className="text-2xl font-bold">{data[0]?.oil} ml</p>
+          <p className="text-2xl font-bold">{data[0]?.oil || 'N/A'} ml</p>
           <p className="text-sm text-gray-500">Amount</p>
         </div>
         
