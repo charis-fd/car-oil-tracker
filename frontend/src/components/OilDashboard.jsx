@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const OilDashboard = () => {
   const [data, setData] = useState([]);
@@ -18,7 +18,10 @@ const OilDashboard = () => {
     day: '2-digit', month: 'short'
   });
 
-  const calculateConsumption = (oil, distance) => distance ? ((oil / distance) * 100).toFixed(2) : 'N/A';
+  const calculateConsumption = (oil, distance) => {
+    if (!distance) return 'N/A';
+    return ((oil / distance) / 10).toFixed(2); // Convert to L/1000km
+  };
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -41,124 +44,108 @@ const OilDashboard = () => {
     return null;
   };
 
+  const Card = ({ title, value, unit, color }) => (
+    <div style={{
+      backgroundColor: '#132f4c',
+      padding: '1rem',
+      borderRadius: '1rem',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      border: '1px solid #1e4976',
+      marginBottom: '1rem'
+    }}>
+      <h2 style={{ color: '#94a3b8', marginBottom: '0.5rem', fontSize: '0.875rem' }}>{title}</h2>
+      <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: color, marginBottom: '0.25rem' }}>
+        {value}
+      </p>
+      <p style={{ color: '#64748b', fontSize: '0.75rem' }}>{unit}</p>
+    </div>
+  );
+
   return (
     <div style={{
       backgroundColor: '#0a1929',
       minHeight: '100vh',
-      padding: '2rem',
+      padding: '1rem',
       color: '#e2e8f0'
     }}>
       <h1 style={{
-        fontSize: '2.5rem',
+        fontSize: '1.5rem',
         fontWeight: 'bold',
-        marginBottom: '2rem',
+        marginBottom: '1.5rem',
         color: '#f8fafc'
       }}>Oil Consumption Dashboard</h1>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '1.5rem',
-        marginBottom: '2rem'
-      }}>
-        <div style={{
-          backgroundColor: '#132f4c',
-          padding: '1.5rem',
-          borderRadius: '1rem',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #1e4976'
-        }}>
-          <h2 style={{ color: '#94a3b8', marginBottom: '0.5rem' }}>Current Odometer</h2>
-          <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#60a5fa', marginBottom: '0.25rem' }}>
-            {data[data.length-1]?.odometer?.toLocaleString()}
-          </p>
-          <p style={{ color: '#64748b' }}>kilometers</p>
-        </div>
-
-        <div style={{
-          backgroundColor: '#132f4c',
-          padding: '1.5rem',
-          borderRadius: '1rem',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #1e4976'
-        }}>
-          <h2 style={{ color: '#94a3b8', marginBottom: '0.5rem' }}>Latest Oil Added</h2>
-          <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#34d399', marginBottom: '0.25rem' }}>
-            {data[data.length-1]?.oil?.toLocaleString()}
-          </p>
-          <p style={{ color: '#64748b' }}>milliliters</p>
-        </div>
-
-        <div style={{
-          backgroundColor: '#132f4c',
-          padding: '1.5rem',
-          borderRadius: '1rem',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #1e4976'
-        }}>
-          <h2 style={{ color: '#94a3b8', marginBottom: '0.5rem' }}>Consumption Rate</h2>
-          <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#a78bfa', marginBottom: '0.25rem' }}>
-            {calculateConsumption(data[data.length-1]?.oil, data[data.length-1]?.distance)}
-          </p>
-          <p style={{ color: '#64748b' }}>ml/100km</p>
-        </div>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <Card
+          title="Current Odometer"
+          value={data[data.length-1]?.odometer?.toLocaleString()}
+          unit="kilometers"
+          color="#60a5fa"
+        />
+        <Card
+          title="Latest Oil Added"
+          value={data[data.length-1]?.oil?.toLocaleString()}
+          unit="milliliters"
+          color="#34d399"
+        />
+        <Card
+          title="Consumption Rate"
+          value={calculateConsumption(data[data.length-1]?.oil, data[data.length-1]?.distance)}
+          unit="L/1000km"
+          color="#a78bfa"
+        />
       </div>
 
       <div style={{
-        display: 'grid',
-        gap: '1.5rem',
-        marginBottom: '2rem'
+        backgroundColor: '#132f4c',
+        padding: '1rem',
+        borderRadius: '1rem',
+        marginBottom: '1.5rem',
+        border: '1px solid #1e4976'
       }}>
-        <div style={{
-          backgroundColor: '#132f4c',
-          padding: '1.5rem',
-          borderRadius: '1rem',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          border: '1px solid #1e4976'
-        }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem', color: '#f8fafc' }}>
-            Oil Usage Trend
-          </h2>
-          <div style={{ height: '400px' }}>
-            <ResponsiveContainer>
-              <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorOil" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#60a5fa" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e4976" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={formatDate} 
-                  stroke="#94a3b8"
-                  tick={{ fill: '#94a3b8' }}
-                />
-                <YAxis 
-                  stroke="#94a3b8"
-                  tick={{ fill: '#94a3b8' }}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Area 
-                  type="monotone" 
-                  dataKey="oil" 
-                  name="Oil Added"
-                  stroke="#60a5fa" 
-                  fill="url(#colorOil)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+        <h2 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#f8fafc' }}>
+          Oil Usage Trend
+        </h2>
+        <div style={{ height: '300px' }}>
+          <ResponsiveContainer>
+            <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorOil" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#60a5fa" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e4976" />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={formatDate} 
+                stroke="#94a3b8"
+                tick={{ fill: '#94a3b8', fontSize: '0.75rem' }}
+                interval="preserveStartEnd"
+              />
+              <YAxis 
+                stroke="#94a3b8"
+                tick={{ fill: '#94a3b8', fontSize: '0.75rem' }}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Area 
+                type="monotone" 
+                dataKey="oil" 
+                name="Oil Added"
+                stroke="#60a5fa" 
+                fill="url(#colorOil)" 
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
       <div style={{
         backgroundColor: '#132f4c',
-        padding: '1.5rem',
+        padding: '1rem',
         borderRadius: '1rem',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        border: '1px solid #1e4976'
+        border: '1px solid #1e4976',
+        overflowX: 'auto'
       }}>
         <div style={{
           display: 'flex',
@@ -166,51 +153,34 @@ const OilDashboard = () => {
           alignItems: 'center',
           marginBottom: '1rem'
         }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f8fafc' }}>
+          <h2 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#f8fafc' }}>
             Historical Records
           </h2>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button style={{
-              backgroundColor: '#1e4976',
-              color: '#e2e8f0',
-              padding: '0.5rem 1rem',
-              borderRadius: '0.5rem',
-              border: 'none',
-              cursor: 'pointer'
-            }}>
-              Export Data
-            </button>
-          </div>
         </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0' }}>
-            <thead>
-              <tr>
-                <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8' }}>Date</th>
-                <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8' }}>Odometer (km)</th>
-                <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8' }}>Distance (km)</th>
-                <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8' }}>Oil Added (ml)</th>
-                <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8' }}>Consumption (ml/100km)</th>
+        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0', fontSize: '0.875rem' }}>
+          <thead>
+            <tr>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Date</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Odometer</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Distance</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Oil Added</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>L/1000km</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.slice().reverse().map((entry) => (
+              <tr key={entry.id}>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>{formatDate(entry.date)}</td>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>{entry.odometer.toLocaleString()}</td>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>{entry.distance.toLocaleString()}</td>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>{entry.oil.toLocaleString()}</td>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                  {calculateConsumption(entry.oil, entry.distance)}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {data.slice().reverse().map((entry) => (
-                <tr key={entry.id} style={{
-                  backgroundColor: 'transparent',
-                  transition: 'background-color 0.2s'
-                }}>
-                  <td style={{ padding: '1rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0' }}>{formatDate(entry.date)}</td>
-                  <td style={{ padding: '1rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0' }}>{entry.odometer.toLocaleString()}</td>
-                  <td style={{ padding: '1rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0' }}>{entry.distance.toLocaleString()}</td>
-                  <td style={{ padding: '1rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0' }}>{entry.oil.toLocaleString()}</td>
-                  <td style={{ padding: '1rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0' }}>
-                    {calculateConsumption(entry.oil, entry.distance)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
