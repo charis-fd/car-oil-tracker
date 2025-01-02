@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Droplet, Navigation, AlertCircle } from 'lucide-react';
 
 const OilDashboard = () => {
   const [data, setData] = useState([]);
@@ -42,17 +41,17 @@ const OilDashboard = () => {
       <div className="flex">
         {/* Sidebar */}
         <div className="w-20 min-h-screen bg-slate-900/50 backdrop-blur-xl border-r border-slate-800 flex flex-col items-center py-8 gap-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-            <Droplet className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold">
+            OIL
           </div>
-          <div className="w-12 h-12 hover:bg-slate-800/50 rounded-xl flex items-center justify-center cursor-pointer">
-            <TrendingUp className="w-6 h-6 text-slate-400" />
+          <div className="w-12 h-12 hover:bg-slate-800/50 rounded-xl flex items-center justify-center cursor-pointer text-slate-400">
+            📊
           </div>
-          <div className="w-12 h-12 hover:bg-slate-800/50 rounded-xl flex items-center justify-center cursor-pointer">
-            <Navigation className="w-6 h-6 text-slate-400" />
+          <div className="w-12 h-12 hover:bg-slate-800/50 rounded-xl flex items-center justify-center cursor-pointer text-slate-400">
+            📍
           </div>
-          <div className="w-12 h-12 hover:bg-slate-800/50 rounded-xl flex items-center justify-center cursor-pointer">
-            <AlertCircle className="w-6 h-6 text-slate-400" />
+          <div className="w-12 h-12 hover:bg-slate-800/50 rounded-xl flex items-center justify-center cursor-pointer text-slate-400">
+            ⚠️
           </div>
         </div>
 
@@ -73,8 +72,8 @@ const OilDashboard = () => {
                   <h3 className="text-3xl font-bold text-blue-400">{data[0]?.odometer?.toLocaleString() || 'N/A'}</h3>
                   <p className="text-slate-500 text-sm mt-1">kilometers</p>
                 </div>
-                <div className="bg-blue-500/10 p-3 rounded-xl">
-                  <Navigation className="w-6 h-6 text-blue-400" />
+                <div className="bg-blue-500/10 p-3 rounded-xl text-blue-400">
+                  📍
                 </div>
               </div>
             </div>
@@ -86,8 +85,8 @@ const OilDashboard = () => {
                   <h3 className="text-3xl font-bold text-emerald-400">{data[0]?.oil?.toLocaleString() || 'N/A'}</h3>
                   <p className="text-slate-500 text-sm mt-1">milliliters</p>
                 </div>
-                <div className="bg-emerald-500/10 p-3 rounded-xl">
-                  <Droplet className="w-6 h-6 text-emerald-400" />
+                <div className="bg-emerald-500/10 p-3 rounded-xl text-emerald-400">
+                  💧
                 </div>
               </div>
             </div>
@@ -101,8 +100,8 @@ const OilDashboard = () => {
                   </h3>
                   <p className="text-slate-500 text-sm mt-1">ml/100km</p>
                 </div>
-                <div className="bg-purple-500/10 p-3 rounded-xl">
-                  <TrendingUp className="w-6 h-6 text-purple-400" />
+                <div className="bg-purple-500/10 p-3 rounded-xl text-purple-400">
+                  📈
                 </div>
               </div>
             </div>
@@ -161,10 +160,10 @@ const OilDashboard = () => {
               <h2 className="text-xl font-bold text-slate-300">Historical Records</h2>
               <div className="flex gap-2">
                 <button className="px-4 py-2 bg-slate-700/50 hover:bg-slate-700 rounded-lg text-slate-300 text-sm">
-                  Export
+                  Export 📊
                 </button>
                 <button className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg text-purple-400 text-sm">
-                  Add New
+                  Add New ➕
                 </button>
               </div>
             </div>
