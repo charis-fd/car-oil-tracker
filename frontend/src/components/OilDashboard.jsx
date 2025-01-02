@@ -32,8 +32,8 @@ const OilDashboard = () => {
           totalDistance,
           totalOil,
           dailyDistance: (totalDistance / daysDiff).toFixed(1),
-          avgConsumption: ((totalOil / totalDistance) / 10).toFixed(2),
-          efficiency: (totalDistance / (totalOil / 1000)).toFixed(1)
+          avgConsumption: ((totalOil / totalDistance) * 10).toFixed(2), // ml/km to L/1000km
+          efficiency: (totalDistance / (totalOil / 1000)).toFixed(1) // km/L
         });
       }
     };
@@ -194,7 +194,7 @@ const OilDashboard = () => {
                   {entry.oil.toLocaleString()}
                 </td>
                 <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
-                  {((entry.oil / entry.distance) / 10).toFixed(2)}
+                  {((entry.oil / entry.distance) * 10).toFixed(2)}
                 </td>
                 <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
                   {(entry.distance / (entry.oil / 1000)).toFixed(1)}
