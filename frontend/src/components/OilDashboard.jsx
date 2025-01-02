@@ -24,7 +24,7 @@ const OilDashboard = () => {
         const endDate = new Date(sortedData[sortedData.length - 1].date);
         const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) || 1;
         
-        const totalDistance = sortedData.reduce((sum, record) => sum + record.distance, 0);
+        const totalDistance = sortedData[sortedData.length - 1].odometer - sortedData[0].odometer;
         const totalOil = sortedData.reduce((sum, record) => sum + record.oil, 0);
         
         setMetrics({
