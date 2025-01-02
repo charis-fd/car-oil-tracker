@@ -4,12 +4,12 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 const OilDashboard = () => {
   const [data, setData] = useState([]);
   const [metrics, setMetrics] = useState({
-    monitoringPeriod: 0,
+    monitoringPeriod: '',
     totalDistance: 0,
     totalOil: 0,
     dailyDistance: 0,
-    efficiency: 0,
-    consumption: 0,
+    avgConsumption: 0,
+    efficiency: 0
   });
   
   useEffect(() => {
@@ -19,26 +19,30 @@ const OilDashboard = () => {
       const sortedData = result.data.sort((a, b) => new Date(a.date) - new Date(b.date));
       setData(sortedData);
       
-      // Calculate metrics
-      const firstDate = new Date(sortedData[0].date);
-      const lastDate = new Date(sortedData[sortedData.length - 1].date);
-      const daysDiff = Math.round((lastDate - firstDate) / (1000 * 60 * 60 * 24));
-      
-      const totalDistance = sortedData.reduce((sum, record) => sum + record.distance, 0);
-      const totalOilML = sortedData.reduce((sum, record) => sum + record.oil, 0);
-      const totalOilL = totalOilML / 1000;
-      
-      setMetrics({
-        monitoringPeriod: daysDiff,
-        totalDistance,
-        totalOil: totalOilL,
-        dailyDistance: totalDistance / daysDiff,
-        efficiency: totalDistance / totalOilL,
-        consumption: (totalOilL * 1000) / totalDistance,
-      });
+      if (sortedData.length > 0) {
+        const startDate = new Date(sortedData[0].date);
+        const endDate = new Date(sortedData[sortedData.length - 1].date);
+        const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) || 1;
+        
+        const totalDistance = sortedData.reduce((sum, record) => sum + record.distance, 0);
+        const totalOil = sortedData.reduce((sum, record) => sum + record.oil, 0);
+        
+        setMetrics({
+          monitoringPeriod: `${formatDate(sortedData[0].date)} - ${formatDate(sortedData[sortedData.length - 1].date)}`,
+          totalDistance,
+          totalOil,
+          dailyDistance: (totalDistance / daysDiff).toFixed(1),
+          avgConsumption: ((totalOil / totalDistance) / 10).toFixed(2),
+          efficiency: (totalDistance / (totalOil / 1000)).toFixed(1)
+        });
+      }
     };
     fetchData();
   }, []);
+
+  const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric'
+  });
 
   const MetricCard = ({ title, value, unit, color }) => (
     <div style={{
@@ -51,7 +55,7 @@ const OilDashboard = () => {
     }}>
       <h2 style={{ color: '#94a3b8', marginBottom: '0.5rem', fontSize: '0.875rem' }}>{title}</h2>
       <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color, marginBottom: '0.25rem' }}>
-        {typeof value === 'number' ? value.toLocaleString(undefined, {maximumFractionDigits: 2}) : value}
+        {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
       <p style={{ color: '#64748b', fontSize: '0.75rem' }}>{unit}</p>
     </div>
@@ -69,13 +73,13 @@ const OilDashboard = () => {
         fontWeight: 'bold',
         marginBottom: '1.5rem',
         color: '#f8fafc'
-      }}>Oil Consumption Report</h1>
+      }}>Oil Consumption Analytics</h1>
 
       <div style={{ marginBottom: '1.5rem' }}>
         <MetricCard
           title="Monitoring Period"
           value={metrics.monitoringPeriod}
-          unit="days"
+          unit="date range"
           color="#60a5fa"
         />
         <MetricCard
@@ -87,7 +91,7 @@ const OilDashboard = () => {
         <MetricCard
           title="Total Oil Added"
           value={metrics.totalOil}
-          unit="liters"
+          unit="milliliters"
           color="#a78bfa"
         />
         <MetricCard
@@ -98,7 +102,7 @@ const OilDashboard = () => {
         />
         <MetricCard
           title="Oil Consumption"
-          value={metrics.consumption}
+          value={metrics.avgConsumption}
           unit="L/1000km"
           color="#fb923c"
         />
@@ -118,68 +122,87 @@ const OilDashboard = () => {
         border: '1px solid #1e4976'
       }}>
         <h2 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#f8fafc' }}>
-          Oil Usage Trend
+          Consumption History
         </h2>
         <div style={{ height: '300px' }}>
           <ResponsiveContainer>
-            <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorOil" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#60a5fa" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
+            <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e4976" />
               <XAxis 
                 dataKey="date" 
-                tickFormatter={date => new Date(date).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: 'short'
-                })}
+                tickFormatter={formatDate} 
                 stroke="#94a3b8"
                 tick={{ fill: '#94a3b8', fontSize: '0.75rem' }}
+                interval="preserveStartEnd"
               />
               <YAxis 
                 stroke="#94a3b8"
                 tick={{ fill: '#94a3b8', fontSize: '0.75rem' }}
               />
               <Tooltip 
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div style={{
-                        backgroundColor: 'rgba(26, 32, 44, 0.95)',
-                        padding: '1rem',
-                        border: '1px solid #2d3748',
-                        borderRadius: '0.375rem'
-                      }}>
-                        <p style={{ color: '#e2e8f0', marginBottom: '0.5rem' }}>
-                          {new Date(label).toLocaleDateString('en-GB', {
-                            day: '2-digit',
-                            month: 'short'
-                          })}
-                        </p>
-                        {payload.map((p, idx) => (
-                          <p key={idx} style={{ color: '#e2e8f0' }}>
-                            {`${p.name}: ${p.value} ml`}
-                          </p>
-                        ))}
-                      </div>
-                    );
-                  }
-                  return null;
+                formatter={(value, name) => [value.toLocaleString(), name]}
+                labelFormatter={formatDate}
+                contentStyle={{
+                  backgroundColor: 'rgba(19, 47, 76, 0.95)',
+                  border: '1px solid #1e4976',
+                  borderRadius: '0.5rem'
                 }}
               />
-              <Area 
+              <Line 
                 type="monotone" 
                 dataKey="oil" 
-                name="Oil Added"
+                name="Oil Added (ml)"
                 stroke="#60a5fa" 
-                fill="url(#colorOil)" 
+                strokeWidth={2}
+                dot={{ fill: '#60a5fa', strokeWidth: 2 }}
               />
-            </AreaChart>
+            </LineChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      <div style={{
+        backgroundColor: '#132f4c',
+        padding: '1rem',
+        borderRadius: '1rem',
+        border: '1px solid #1e4976',
+        overflowX: 'auto'
+      }}>
+        <h2 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#f8fafc' }}>
+          Detailed Records
+        </h2>
+        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0', fontSize: '0.875rem' }}>
+          <thead>
+            <tr>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Date</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Distance (km)</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Oil Added (ml)</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>L/1000km</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>km/L</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.slice().reverse().map((entry) => (
+              <tr key={entry.id}>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                  {formatDate(entry.date)}
+                </td>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                  {entry.distance.toLocaleString()}
+                </td>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                  {entry.oil.toLocaleString()}
+                </td>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                  {((entry.oil / entry.distance) / 10).toFixed(2)}
+                </td>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                  {(entry.distance / (entry.oil / 1000)).toFixed(1)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
