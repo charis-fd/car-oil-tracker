@@ -122,7 +122,7 @@ const OilDashboard = () => {
         border: '1px solid #1e4976'
       }}>
         <h2 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#f8fafc' }}>
-          Consumption History
+          Oil added History
         </h2>
         <div style={{ height: '300px' }}>
           <ResponsiveContainer>
@@ -175,10 +175,9 @@ const OilDashboard = () => {
           <thead>
             <tr>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Date</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Odometer (km)</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Distance (km)</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Oil Added (ml)</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>L/1000km</th>
-              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>km/L</th>
             </tr>
           </thead>
           <tbody>
@@ -188,16 +187,13 @@ const OilDashboard = () => {
                   {formatDate(entry.date)}
                 </td>
                 <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                  {entry.odometer.toLocaleString()}
+                </td>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
                   {entry.distance.toLocaleString()}
                 </td>
                 <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
                   {entry.oil.toLocaleString()}
-                </td>
-                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
-                  {((entry.oil / 1000) / (entry.distance / 1000)).toFixed(2)}
-                </td>
-                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
-                  {(entry.distance / (entry.oil / 1000)).toFixed(1)}
                 </td>
               </tr>
             ))}
