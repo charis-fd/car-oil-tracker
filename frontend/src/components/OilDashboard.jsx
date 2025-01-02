@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 const OilDashboard = () => {
   const [data, setData] = useState([]);
+  const [metrics, setMetrics] = useState({
+    totalDistance: 0,
+    totalOil: 0,
+    avgEfficiency: 0,
+    trend: []
+  });
   
   useEffect(() => {
     const fetchData = async () => {
@@ -10,6 +16,30 @@ const OilDashboard = () => {
       const result = await response.json();
       const sortedData = result.data.sort((a, b) => new Date(a.date) - new Date(b.date));
       setData(sortedData);
+      
+      // Calculate metrics
+      const totalDistance = sortedData.reduce((sum, record) => sum + record.distance, 0);
+      const totalOil = sortedData.reduce((sum, record) => sum + record.oil, 0);
+      const avgEfficiency = (totalDistance / (totalOil / 1000)).toFixed(2); // km/L
+
+      // Calculate running efficiency
+      const trend = sortedData.map((record, index) => {
+        const distanceToDate = sortedData.slice(0, index + 1)
+          .reduce((sum, r) => sum + r.distance, 0);
+        const oilToDate = sortedData.slice(0, index + 1)
+          .reduce((sum, r) => sum + r.oil, 0);
+        return {
+          ...record,
+          efficiency: (distanceToDate / (oilToDate / 1000)).toFixed(2)
+        };
+      });
+
+      setMetrics({
+        totalDistance,
+        totalOil,
+        avgEfficiency,
+        trend
+      });
     };
     fetchData();
   }, []);
@@ -20,7 +50,7 @@ const OilDashboard = () => {
 
   const calculateConsumption = (oil, distance) => {
     if (!distance) return 'N/A';
-    return ((oil / distance) / 10).toFixed(2); // Convert to L/1000km
+    return ((oil / distance) / 10).toFixed(2); // L/1000km
   };
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -35,7 +65,8 @@ const OilDashboard = () => {
           <p style={{ color: '#e2e8f0', marginBottom: '0.5rem' }}>{formatDate(label)}</p>
           {payload.map((p, idx) => (
             <p key={idx} style={{ color: '#e2e8f0' }}>
-              {`${p.name}: ${p.value.toLocaleString()} ${p.dataKey === 'distance' ? 'km' : 'ml'}`}
+              {`${p.name}: ${p.value} ${p.dataKey === 'efficiency' ? 'km/L' : 
+                p.dataKey === 'distance' ? 'km' : 'ml'}`}
             </p>
           ))}
         </div>
@@ -44,7 +75,7 @@ const OilDashboard = () => {
     return null;
   };
 
-  const Card = ({ title, value, unit, color }) => (
+  const MetricCard = ({ title, value, unit, color, subtext }) => (
     <div style={{
       backgroundColor: '#132f4c',
       padding: '1rem',
@@ -58,6 +89,7 @@ const OilDashboard = () => {
         {value}
       </p>
       <p style={{ color: '#64748b', fontSize: '0.75rem' }}>{unit}</p>
+      {subtext && <p style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '0.5rem' }}>{subtext}</p>}
     </div>
   );
 
@@ -76,24 +108,70 @@ const OilDashboard = () => {
       }}>Oil Consumption Dashboard</h1>
 
       <div style={{ marginBottom: '1.5rem' }}>
-        <Card
+        <MetricCard
           title="Current Odometer"
           value={data[data.length-1]?.odometer?.toLocaleString()}
           unit="kilometers"
           color="#60a5fa"
         />
-        <Card
+        <MetricCard
           title="Latest Oil Added"
           value={data[data.length-1]?.oil?.toLocaleString()}
           unit="milliliters"
           color="#34d399"
         />
-        <Card
-          title="Consumption Rate"
+        <MetricCard
+          title="Current Consumption"
           value={calculateConsumption(data[data.length-1]?.oil, data[data.length-1]?.distance)}
           unit="L/1000km"
           color="#a78bfa"
         />
+        <MetricCard
+          title="Overall Efficiency"
+          value={metrics.avgEfficiency}
+          unit="kilometers per liter"
+          color="#f472b6"
+          subtext={`Total Distance: ${metrics.totalDistance.toLocaleString()}km`}
+        />
+      </div>
+
+      <div style={{
+        backgroundColor: '#132f4c',
+        padding: '1rem',
+        borderRadius: '1rem',
+        marginBottom: '1.5rem',
+        border: '1px solid #1e4976'
+      }}>
+        <h2 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#f8fafc' }}>
+          Efficiency Trend
+        </h2>
+        <div style={{ height: '300px' }}>
+          <ResponsiveContainer>
+            <LineChart data={metrics.trend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e4976" />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={formatDate} 
+                stroke="#94a3b8"
+                tick={{ fill: '#94a3b8', fontSize: '0.75rem' }}
+                interval="preserveStartEnd"
+              />
+              <YAxis 
+                stroke="#94a3b8"
+                tick={{ fill: '#94a3b8', fontSize: '0.75rem' }}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Line 
+                type="monotone" 
+                dataKey="efficiency" 
+                name="Efficiency"
+                stroke="#f472b6" 
+                strokeWidth={2}
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       <div style={{
@@ -165,6 +243,7 @@ const OilDashboard = () => {
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Distance</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>Oil Added</th>
               <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>L/1000km</th>
+              <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '1px solid #1e4976', color: '#94a3b8', whiteSpace: 'nowrap' }}>km/L</th>
             </tr>
           </thead>
           <tbody>
@@ -176,6 +255,9 @@ const OilDashboard = () => {
                 <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>{entry.oil.toLocaleString()}</td>
                 <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
                   {calculateConsumption(entry.oil, entry.distance)}
+                </td>
+                <td style={{ padding: '0.75rem', borderBottom: '1px solid #1e4976', color: '#e2e8f0', whiteSpace: 'nowrap' }}>
+                  {((entry.distance / (entry.oil / 1000))).toFixed(2)}
                 </td>
               </tr>
             ))}
