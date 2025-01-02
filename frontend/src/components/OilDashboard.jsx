@@ -8,15 +8,19 @@ const OilDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/oils?populate*`);
-        setData(response.data.data);
+        console.log('Fetching from:', `${import.meta.env.VITE_API_URL}/api/oils?populate*`);
+        const response = await axios.get('https://yeti-final-app.onrender.com/api/oils?populate=*');
+        console.log('API Response:', response.data);
+        setData(response.data.data || []);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error details:', error.response || error);
       }
     };
     
     fetchData();
   }, []);
+
+  console.log('Current data state:', data);;
 
   const calculateConsumption = (oil, distance) => {
     return ((oil / distance) * 100).toFixed(2);
